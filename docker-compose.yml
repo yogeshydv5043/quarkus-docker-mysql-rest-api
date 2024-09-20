@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    restart: always
+    container_name: quarkus-mysql-app
+    environment:
+      MYSQL_DATABASE: quarkus  # Database ka naam specify kar rahe hain
+      MYSQL_ROOT_PASSWORD: 1304  # MySQL root password specify kar rahe hain
+    ports:
+      - "3307:3306"  # Host port 3307 ko MySQL container ke port 3306 se map kar rahe hain
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]  # Health check command
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  quarkus-app:
+    build:
+      context: .  # Dockerfile ke liye context specify kar rahe hain
+      dockerfile: src/main/docker/Dockerfile.jvm
+    container_name: quarkus-docker-app
+    environment:
+      QUARKUS_DATASOURCE_JDBC_URL: jdbc:mysql://quarkus-mysql-app:3306/quarkus  # Database URL
+      QUARKUS_DATASOURCE_USERNAME: root  # Username specify kar rahe hain
+      QUARKUS_DATASOURCE_PASSWORD: 1304  # Password specify kar rahe hain
+    ports:
+      - "8081:8081"  # Host port 8082 ko container port 8082 se map kar rahe hain
+    depends_on:
+      - mysql  # Quarkus app ko MySQL container ke start hone ke baad hi start karenge
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge  # Network driver specify kar rahe hain

@@ -1,0 +1,30 @@
+# Runtime image ke liye base image select kar rahe hain jo OpenJDK 17 ke saath hai
+FROM openjdk:17
+
+# Environment variables set kar rahe hain jo locale aur language specify karte hain
+ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en'
+
+# JAVA_OPTIONS ko configure kar rahe hain
+ENV JAVA_OPTIONS="-Dquarkus.http.host=127.0.0.1 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
+
+# MySQL ke liye environment variables set kar rahe hain
+ENV QUARKUS_DATASOURCE_JDBC_URL="jdbc:mysql://quarkus-mysql-app:3306/quarkus"
+## Username specify kar rahe hain
+ENV QUARKUS_DATASOURCE_USERNAME="root"
+## Password specify kar rahe hain
+ENV QUARKUS_DATASOURCE_PASSWORD="1304"
+
+# Yeh commands alag-alag layers banate hain
+COPY --chown=185 target/quarkus-app/lib/ /deployments/lib/
+COPY --chown=185 target/quarkus-app/*.jar /deployments/
+COPY --chown=185 target/quarkus-app/app/ /deployments/app/
+COPY --chown=185 target/quarkus-app/quarkus/ /deployments/quarkus/
+
+# Port expose kar rahe hain jo Quarkus application ke liye hai
+EXPOSE 8081
+
+# User set kar rahe hain jo container ke andar kaam karega
+USER 185
+
+# Application ko run karne ke liye entrypoint specify kar rahe hain
+ENTRYPOINT [ "java", "-jar", "/deployments/quarkus-run.jar" ]
